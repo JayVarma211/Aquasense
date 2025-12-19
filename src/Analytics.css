@@ -1,0 +1,115 @@
+/* =============================
+   ANALYTICS PAGE BASE STYLE
+============================= */
+.analytics-container {
+  padding: 30px 40px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ecfffd, #f4fff9);
+  font-family: "Segoe UI", sans-serif;
+  transition: 0.3s ease;
+}
+
+/* DARK MODE */
+.analytics-container.dark-mode {
+  background: linear-gradient(160deg, #001012, #001e22);
+  color: #d0ffff;
+}
+
+/* =============================
+   HEADER
+============================= */
+.analytics-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 18px 25px;
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.analytics-container.dark-mode .analytics-header {
+  background: rgba(0, 20, 20, 0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 25px rgba(0, 255, 255, 0.05);
+}
+
+.analytics-header h1 {
+  margin: 0;
+  font-size: 26px;
+  color: #064663;
+}
+
+.analytics-container.dark-mode .analytics-header h1 {
+  color: #91ffff;
+}
+
+/* BACK BUTTON */
+.back-btn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  color: black;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.analytics-container.dark-mode .back-btn {
+  background: linear-gradient(135deg, #0ef, #0af);
+  color: black;
+}
+
+/* =============================
+   CHART GRID
+============================= */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 30px;
+}
+
+/* CHART CARD */
+.chart-card {
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 18px;
+  padding: 25px;
+  height: 340px;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  backdrop-filter: blur(14px);
+}
+
+.analytics-container.dark-mode .chart-card {
+  background: rgba(0, 20, 20, 0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 18px rgba(0,255,255,0.06);
+}
+
+.chart-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #0b3d3a;
+}
+
+.analytics-container.dark-mode .chart-card h2 {
+  color: #9ff;
+}
+
+/* =============================
+   RESPONSIVE
+============================= */
+@media (max-width: 900px) {
+  .analytics-container {
+    padding: 20px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}

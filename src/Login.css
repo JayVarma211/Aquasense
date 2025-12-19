@@ -1,0 +1,436 @@
+/* =========================================================
+   🌊 AQUASENSE LOGIN & REGISTER PAGE
+   Production-Ready | Glassmorphism | Responsive
+========================================================= */
+
+@import url("./theme.css");
+
+/* =========================================================
+   🌗 UNIVERSAL THEME SWITCH (LOGIN + REGISTER + DASHBOARD)
+========================================================= */
+.theme-switch-wrapper {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 9999;
+}
+
+.theme-switch {
+  width: 64px;
+  height: 32px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #00c9a7, #2eeaff);
+  box-shadow: 0 0 15px rgba(46, 234, 255, 0.6);
+  cursor: pointer;
+  position: relative;
+  transition: 0.4s ease;
+}
+
+.theme-switch::before {
+  content: "🌙";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.4s ease;
+  font-size: 14px;
+}
+
+.theme-switch.light {
+  background: linear-gradient(135deg, #ffd86b, #fff3c2);
+  box-shadow: 0 0 15px rgba(255, 220, 140, 0.9);
+}
+
+.theme-switch.light::before {
+  left: 36px;
+  content: "☀️";
+}
+
+/* =========================================================
+   DASHBOARD BASE THEME CONNECTION (NO ANIMATION REMOVED)
+========================================================= */
+
+.dashboard-container {
+  min-height: 100vh;
+  background: var(--bg-main);
+  color: var(--text-main);
+  transition: background 0.6s ease, color 0.4s ease;
+}
+
+/* Sensor cards adopt global theme */
+.sensor-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glow);
+  color: var(--text-main);
+}
+
+.sensor-label {
+  color: var(--text-soft);
+}
+
+.sensor-value {
+  color: var(--text-main);
+}
+
+
+/* =========================================================
+   🌱 THEME VARIABLES 
+========================================================= */
+:root {
+  --bg-light: linear-gradient(135deg, #b6f2e6, #e8fff8);
+  --bg-dark: linear-gradient(135deg, #051c2c, #020f1a);
+
+  --card-light: rgba(255, 255, 255, 0.55);
+  --card-dark: rgba(255, 255, 255, 0.08);
+
+  --text-light: #003e3e;
+  --text-dark: #e6f7ff;
+
+  --primary: #00bfa6;
+  --secondary: #2eeaff;
+}
+
+/* =========================================================
+   🌙 LIGHT & DARK MODES
+========================================================= */
+.theme-light {
+  background: var(--bg-light);
+  color: var(--text-light);
+}
+
+.theme-dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+/* =========================================================
+   MAIN PAGE CONTAINER
+========================================================= */
+.auth-container {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-size: cover;
+  transition: 0.4s ease;
+  animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* =========================================================
+   🌧 RAIN ANIMATION BACKGROUND
+========================================================= */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 18px,
+    rgba(255, 255, 255, 0.15) 20px,
+    transparent 24px
+  );
+  animation: rain 0.5s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes rain {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+/* =========================================================
+   🍃 FLOATING LEAVES (PARTICLES)
+========================================================= */
+.leaf {
+  position: absolute;
+  top: -50px;
+  font-size: 18px;
+  opacity: 0.7;
+  animation: leafFloat 12s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.leaf:nth-child(1) { left: 10%; animation-delay: 0s; }
+.leaf:nth-child(2) { left: 30%; animation-delay: 3s; }
+.leaf:nth-child(3) { left: 60%; animation-delay: 6s; }
+.leaf:nth-child(4) { left: 85%; animation-delay: 9s; }
+
+@keyframes leafFloat {
+  0% { transform: translateY(-50px) rotate(0deg); }
+  100% { transform: translateY(110vh) rotate(360deg); }
+}
+
+/* =========================================================
+   CARD (GLASSMORPHISM)
+========================================================= */
+.auth-card {
+  width: 380px;
+  padding: 35px;
+  border-radius: 22px;
+
+  backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  text-align: center;
+
+  position: relative;
+  z-index: 1;
+
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+.theme-light .auth-card {
+  background: var(--card-light);
+}
+
+.theme-dark .auth-card {
+  background: var(--card-dark);
+}
+
+/* =========================================================
+   TITLES
+========================================================= */
+.auth-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  background: linear-gradient(135deg, #00c9a7, #2eeaff);
+
+  background-clip: text;          /* ✅ Standard */
+  -webkit-background-clip: text; /* ✅ WebKit browsers */
+  -webkit-text-fill-color: transparent;
+}
+
+
+.auth-subtitle {
+  font-size: 14px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+/* =========================================================
+   INPUT FIELDS
+========================================================= */
+.auth-label {
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.required {
+  color: red;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  outline: none;
+  transition: 0.25s ease;
+}
+
+.auth-input:focus {
+  box-shadow: 0 0 10px var(--secondary);
+}
+
+/* =========================================================
+   PASSWORD FIELD
+========================================================= */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: inherit;
+}
+
+/* =========================
+   FORGOT PASSWORD LINK FIX
+========================= */
+.forgot-password {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #2eeaff;
+  cursor: pointer;
+  position: relative;
+  transition: 0.3s ease;
+}
+
+/* GLOW + UNDERLINE ON HOVER */
+.forgot-password:hover {
+  color: #00c9a7;
+  text-shadow: 0 0 8px rgba(46, 234, 255, 0.8);
+  transform: scale(1.05);
+}
+
+/* ANIMATED UNDERLINE */
+.forgot-password::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #00c9a7, #2eeaff);
+  transition: width 0.3s ease;
+}
+
+.forgot-password:hover::after {
+  width: 100%;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.submit-btn,
+.google-btn,
+.theme-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 💧 Water Ripple Effect */
+.submit-btn::after,
+.google-btn::after,
+.theme-btn::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: scale(1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.submit-btn:hover::after,
+.google-btn:hover::after,
+.theme-btn:hover::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.3); opacity: 0.9; }
+  100% { transform: scale(12); opacity: 0; }
+}
+
+/* BUTTON STYLE */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #00c9a7, #2eeaff);
+  color: #003f3f;
+  font-weight: bold;
+
+  transition: 0.3s ease;
+}
+
+.submit-btn:hover {
+  transform: scale(1.05);
+}
+
+.google-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+.google-btn img {
+  width: 22px;
+}
+
+/* =========================================================
+   SWITCH / LINKS / MESSAGES
+========================================================= */
+.auth-switch {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: var(--primary);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.error-message {
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff8e8e;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* =========================================================
+   THEME TOGGLE BUTTON
+========================================================= */
+.theme-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+
+  padding: 8px 14px;
+  border-radius: 50px;
+  border: none;
+
+  font-size: 13px;
+  font-weight: bold;
+
+  background: linear-gradient(135deg, #00c9a7, #2eeaff);
+  color: #003f3f;
+
+  cursor: pointer;
+  z-index: 5;
+}

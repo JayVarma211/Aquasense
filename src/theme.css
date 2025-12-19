@@ -1,0 +1,467 @@
+/* =========================================================
+   🌾 AQUASENSE - LIGHT CLEAN FARMING THEME
+   Production Ready | Clean & Bright | Agricultural IoT
+========================================================= */
+
+/* =========================================================
+   📦 CSS VARIABLES - THEME FOUNDATION
+========================================================= */
+
+:root {
+  /* 🌞 LIGHT MODE (DEFAULT) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fdf6;
+  --bg-tertiary: #f0faf6;
+  
+  --glass-light: rgba(255, 255, 255, 0.95);
+  --glass-medium: rgba(255, 255, 255, 0.98);
+  --glass-strong: rgba(255, 255, 255, 1);
+  
+  --text-primary: #1a3d2a;
+  --text-secondary: #4a6b5e;
+  --text-tertiary: #7a9b8e;
+  
+  --accent-green: #2d8659;
+  --accent-light-green: #4db878;
+  --accent-aqua: #00a8a8;
+  --accent-blue: #3ba9d6;
+  --accent-earth: #a68560;
+  
+  --border-color: #d4e8e0;
+  --border-light: #e8f2ed;
+  
+  --shadow-soft: 0 2px 8px rgba(45, 134, 89, 0.08);
+  --shadow-medium: 0 4px 16px rgba(45, 134, 89, 0.12);
+  --shadow-strong: 0 8px 24px rgba(45, 134, 89, 0.15);
+  
+  --transition-smooth: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.3s ease;
+  --transition-slow: 0.6s ease-in-out;
+}
+
+/* 🌙 DARK MODE */
+.theme-dark {
+  --bg-primary: #1a2b23;
+  --bg-secondary: #1f3229;
+  --bg-tertiary: #24382e;
+  
+  --glass-light: rgba(255, 255, 255, 0.08);
+  --glass-medium: rgba(255, 255, 255, 0.12);
+  --glass-strong: rgba(255, 255, 255, 0.15);
+  
+  --text-primary: #e8f2ed;
+  --text-secondary: #b8d4c8;
+  --text-tertiary: #8aaa9e;
+  
+  --accent-green: #4db878;
+  --accent-light-green: #5cd88a;
+  --accent-aqua: #00d4d4;
+  --accent-blue: #5ec9ff;
+  --accent-earth: #d4b896;
+  
+  --border-color: rgba(77, 184, 120, 0.2);
+  --border-light: rgba(77, 184, 120, 0.15);
+  
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.5);
+  
+  --transition-smooth: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.3s ease;
+  --transition-slow: 0.6s ease-in-out;
+}
+
+
+/* =========================================================
+   🌍 GLOBAL STYLES
+========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", 
+              "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background var(--transition-smooth), color var(--transition-smooth);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/* =========================================================
+   🎨 THEME TOGGLE SWITCH
+========================================================= */
+
+.theme-switch-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  border-radius: 50px;
+  box-shadow: var(--shadow-soft);
+  animation: fadeInDown 0.6s ease;
+}
+
+.theme-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.theme-switch {
+  width: 56px;
+  height: 28px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #d0d0d0, #e8e8e8);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition-fast);
+  border: 1px solid #c0c0c0;
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-switch::before {
+  content: "☀️";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.theme-switch:hover {
+  transform: scale(1.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), var(--shadow-soft);
+}
+
+.theme-switch.dark {
+  background: linear-gradient(135deg, #2d5541, #3a6b51);
+  border-color: var(--accent-green);
+}
+
+.theme-switch.dark::before {
+  left: 29px;
+  content: "🌙";
+}
+
+
+/* =========================================================
+   ✨ GLOBAL ANIMATIONS
+========================================================= */
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatSmooth {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes softGlow {
+  0%, 100% { box-shadow: var(--shadow-medium); }
+  50% { box-shadow: var(--shadow-strong); }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0; 
+    transform: translateX(-15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes leafFloat {
+  0% {
+    transform: translateY(-60px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rainFall {
+  0% {
+    top: -10vh;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100vh;
+    opacity: 0;
+  }
+}
+
+@keyframes gentleShimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes cardLift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+
+/* =========================================================
+   🔘 BUTTON STYLES - UNIVERSAL
+========================================================= */
+
+button {
+  font-family: inherit;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+button:focus {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
+/* Primary Button */
+.btn-primary {
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-light-green));
+  color: white;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--accent-green);
+  border: 1.5px solid var(--accent-green);
+  box-shadow: var(--shadow-soft);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.btn-secondary:hover {
+  background: var(--accent-green);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Icon Button */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: var(--accent-green);
+  color: white;
+  border-color: var(--accent-green);
+  box-shadow: var(--shadow-medium);
+}
+
+
+/* =========================================================
+   📝 INPUT & FORM STYLES
+========================================================= */
+
+input, textarea, select {
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: var(--transition-fast);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  background: var(--bg-primary);
+  box-shadow: 0 0 0 3px rgba(45, 134, 89, 0.1);
+}
+
+/* =========================================================
+   💾 SCROLL & UTILITIES
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-light-green);
+}
+
+/* Utility Classes */
+.glass {
+  background: var(--glass-medium);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-soft);
+}
+
+.soft-shadow {
+  box-shadow: var(--shadow-soft);
+}
+
+.text-muted {
+  color: var(--text-tertiary);
+}
+
+
+/* =========================================================
+   📱 RESPONSIVE HELPERS
+========================================================= */
+
+@media (max-width: 900px) {
+  .theme-switch-wrapper {
+    top: 15px;
+    right: 15px;
+    padding: 8px 14px;
+  }
+
+  .theme-label {
+    font-size: 11px;
+  }
+
+  .theme-switch {
+    width: 50px;
+    height: 26px;
+  }
+
+  .theme-switch::before {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  .theme-switch.dark::before {
+    left: 26px;
+  }
+}
+
+@media (max-width: 600px) {
+  .theme-switch-wrapper {
+    top: 12px;
+    right: 12px;
+  }
+
+  button {
+    font-size: 13px;
+  }
+
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 14px 14px;
+  }
+}
