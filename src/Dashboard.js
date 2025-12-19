@@ -1,71 +1,61 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { FaMoon, FaSun, FaSignOutAlt, FaBars, FaBell } from "react-icons/fa";
+import { FaMoon, FaSun, FaSignOutAlt, FaBars, FaBell, FaCog } from "react-icons/fa";
 
-export default function Dashboard({ sensor, user, setUser, setPage }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+export default function Dashboard({ sensor, setUser, setPage }) {
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
+  const [raindrops, setRaindrops] = useState([]);
 
-  // WEATHER STATES
-  const [weather, setWeather] = useState(null);
-  const [aqi, setAqi] = useState(null);
+  // Extract data early to avoid conditional hook calls
+  const data = sensor?.sensor_data ?? sensor ?? {};
+  
+  // Parse all sensor values properly using exact database field names
+  const temp = parseFloat(data.temperature) || 0;
+  const humidity = parseFloat(data.humidity) || 0;
+  const soil = parseFloat(data.soil_moisture_level) || 0;
+  const rain = Boolean(data.is_rain);
 
-  const API_KEY = "6f5e2c8e7d5a43a3b9eb3b2a0cd7b8ff";
-
-  // THEME PERSISTENCE
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // ------------------------------------------------------------
-  // WEATHER FETCHER
-  // ------------------------------------------------------------
+  // Handle window resize for sidebar
   useEffect(() => {
-    async function fetchWeather() {
-      try {
-        const locRes = await fetch("https://ipapi.co/json");
-        const loc = await locRes.json();
-        const city = loc.city || "Delhi";
-
-        const weatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
-        const res = await fetch(weatherURL);
-        const w = await res.json();
-
-        setWeather({
-          temp: w.main.temp,
-          humidity: w.main.humidity,
-          condition: w.weather[0].main,
-          icon: w.weather[0].icon,
-          city,
-          lat: w.coord.lat,
-          lon: w.coord.lon,
-        });
-
-        const airURL = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${w.coord.lat}&lon=${w.coord.lon}&appid=${API_KEY}`;
-        const airRes = await fetch(airURL);
-        const aqiData = await airRes.json();
-        setAqi(aqiData.list[0].main.aqi);
-      } catch (err) {
-        console.log("Weather fetch failed");
+    const handleResize = () => {
+      if (window.innerWidth > 900) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
       }
-    }
+    };
 
-    fetchWeather();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // ------------------------------------------------------------
-  // NORMALIZING SENSOR INPUT
-  // ------------------------------------------------------------
-  if (!sensor) return <div className="loading">Loading...</div>;
+  // Generate full-page raindrops immediately when rain status changes
+  useEffect(() => {
+    if (rain) {
+      // Generate more raindrops for full page coverage (80 drops)
+      const drops = Array.from({ length: 80 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        duration: 1.2 + Math.random() * 1,
+        delay: Math.random() * 0.5, // Reduced delay for immediate start
+        height: 40 + Math.random() * 30
+      }));
+      setRaindrops(drops);
+    } else {
+      setRaindrops([]);
+    }
+  }, [rain]);
 
-  const data = sensor.sensor_data ?? sensor;
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  const temp = data.temperature ?? data.temp ?? 0;
-  const humidity = data.humidity ?? data.hum ?? 0;
-  const soil = data.soil_moisture_level ?? data.soil ?? 0;
-  const rain = data.rain ?? data.is_rain ?? 0;
-
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
   const toggleSidebar = () => setSidebarOpen((s) => !s);
 
   const handleLogout = () => {
@@ -74,114 +64,41 @@ export default function Dashboard({ sensor, user, setUser, setPage }) {
     setPage("login");
   };
 
-  function aqiText(level) {
-    switch (level) {
-      case 1: return "Good 😊";
-      case 2: return "Fair 🙂";
-      case 3: return "Moderate 😐";
-      case 4: return "Poor 😣";
-      case 5: return "Very Poor 😷";
-      default: return "N/A";
-    }
+  // Show loading only after all hooks have been called
+  if (!sensor) {
+    return <div className="loading">Loading...</div>;
   }
 
-  // Calculate progress percentages
-  const tempProgress = Math.min((temp / 50) * 100, 100);
-  const humidityProgress = humidity;
-  const soilProgress = soil;
-
-  // Generate rain drops dynamically
-const rainDrops = Array.from({ length: 80 }).map((_, i) => ({
-  left: Math.random() * 100,      // random X position
-  delay: Math.random() * 2,       // random start delay
-  duration: 0.4 + Math.random() * 0.8  // random speed
-}));
-
-
   return (
-    <div className={`dashboard-layout ${theme === "dark" ? "dark-mode" : ""}`}>
-
-      {/* RAIN EFFECT ONLY WHEN raining */}
-      {rain === true && (
-        <div className="rain-overlay">
-          {rainDrops.map((d, i) => (
+    <div className={`dashboard-layout ${theme === "dark" ? "dark" : ""}`}>
+      
+      {/* FULL PAGE RAIN ANIMATION */}
+      {rain && (
+        <div className="full-page-rain">
+          {raindrops.map((drop) => (
             <div
-              key={i}
-              className="rain-drop"
+              key={drop.id}
+              className="full-page-raindrop"
               style={{
-                left: `${d.left}vw`,
-                animationDelay: `${d.delay}s`,
-                animationDuration: `${d.duration}s`
+                left: `${drop.left}%`,
+                height: `${drop.height}px`,
+                animationDuration: `${drop.duration}s`,
+                animationDelay: `${drop.delay}s`
               }}
             />
           ))}
         </div>
       )}
 
-      {/* HEAT WAVE (Temp > 30°C) */}
-      {temp > 30 && (
-        <div className="heat-overlay">
-          <div className="heat-wave"></div>
-          <div className="heat-wave"></div>
-          <div className="heat-wave"></div>
-        </div>
-      )}
-
-      {/* SNOW (Temp < 10°C) */}
-      {temp < 10 && (
-        <div className="snow-overlay">
-          {Array.from({ length: 40 }).map((_, i) => (
-            <div
-              key={i}
-              className="snowflake"
-              style={{
-                left: Math.random() * 100 + "vw",
-                fontSize: Math.random() * 10 + 8 + "px",
-                animationDuration: Math.random() * 5 + 5 + "s",
-              }}
-            >
-              ❄
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* FOG EFFECT (Humidity > 70%) */}
-      {humidity > 70 && (
-        <div className="fog-overlay">
-          <div className="fog-layer"></div>
-          <div className="fog-layer"></div>
-        </div>
-      )}
-
-      {/* DUST EFFECT (Soil < 30%) */}
-      {soil < 30 && (
-        <div className="dust-overlay">
-          {Array.from({ length: 40 }).map((_, i) => (
-            <div
-              key={i}
-              className="dust-particle"
-              style={{
-                left: Math.random() * 100 + "vw",
-                top: Math.random() * 100 + "vh",
-                animationDuration: Math.random() * 6 + 6 + "s",
-              }}
-            ></div>
-          ))}
-        </div>
-      )}
-
-
       {/* SIDEBAR */}
-      <aside className={`sidebar ${sidebarOpen ? "" : "collapsed"}`}>
-        <img src="logo192.png" className="sidebar-logo" alt="logo" />
-
-        {sidebarOpen && (
-          <div className="sidebar-title">
+      <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
+        <div className="sidebar-header">
+          <img src="logo192.png" alt="logo" />
+          <div>
             <h2>AquaSense</h2>
             <p>Smart field insights</p>
           </div>
-        )}
+        </div>
 
         <ul className="sidebar-menu">
           <li className="active">Dashboard</li>
@@ -191,23 +108,23 @@ const rainDrops = Array.from({ length: 80 }).map((_, i) => ({
         </ul>
       </aside>
 
-      {/* MAIN SECTION */}
-      <main className="dashboard-main">
+      {/* OVERLAY (for mobile/tablet click-out) */}
+      {sidebarOpen && window.innerWidth <= 900 && (
+        <div className="sidebar-overlay show" onClick={toggleSidebar} />
+      )}
 
-        {/* HEADER */}
+      {/* MAIN */}
+      <main className={`dashboard-main ${sidebarOpen && window.innerWidth > 900 ? "sidebar-open" : ""}`}>
         <header className="dashboard-header">
-          <button className="menu-btn" onClick={toggleSidebar}><FaBars /></button>
+          <button className="menu-btn" onClick={toggleSidebar}>
+            <FaBars />
+          </button>
 
-          <div className="header-title">
-            <h1>AquaSense Dashboard</h1>
-          </div>
+          <h1>AquaSense Dashboard</h1>
 
           <div className="header-right">
-            <div className="updated-box">
-              <span>Updated</span>
-              <strong>N/A</strong>
-            </div>
-
+            <span className="update-badge">Updated N/A</span>
+            
             <button className="icon-btn">
               <FaBell />
             </button>
@@ -216,104 +133,109 @@ const rainDrops = Array.from({ length: 80 }).map((_, i) => ({
               {theme === "dark" ? <FaSun /> : <FaMoon />}
             </button>
 
+            <button className="icon-btn">
+              <FaCog />
+            </button>
+
             <button className="logout-btn" onClick={handleLogout}>
-              Sign out
+              <FaSignOutAlt /> <span>Sign out</span>
             </button>
           </div>
         </header>
 
         {/* SENSOR CARDS */}
         <div className="sensor-grid">
-          <div className={`sensor-card 
-                ${temp > 30 ? "hot-card" : ""} 
-                ${temp < 10 ? "cold-card" : ""}`}
-              >
-
-            <div className="sensor-header">
-              <h3>🌡 Temperature</h3>
-              <h2 className="sensor-value">{temp}°C</h2>
+          {/* Temperature Card */}
+          <div className="sensor-card">
+            <div className="sensor-card-header">
+              <span className="sensor-icon">🌡️</span>
+              <span>Temperature</span>
             </div>
-            <div className="progress-bar">
+            <div className="sensor-value">{temp}°C</div>
+            <div className="sensor-progress">
               <div 
-                className="progress-fill" 
-                style={{ width: `${tempProgress}%` }}
-              ></div>
+                className="sensor-progress-bar" 
+                style={{ width: `${Math.min((temp / 50) * 100, 100)}%` }}
+              />
             </div>
           </div>
 
-          <div className={`sensor-card 
-            ${humidity > 70 ? "humid-card" : ""}`}
-          >
-
-            <div className="sensor-header">
-              <h3>💧 Humidity</h3>
-              <h2 className="sensor-value">{humidity}%</h2>
+          {/* Humidity Card */}
+          <div className="sensor-card">
+            <div className="sensor-card-header">
+              <span className="sensor-icon">💧</span>
+              <span>Humidity</span>
             </div>
-            <div className="progress-bar">
+            <div className="sensor-value">{humidity}%</div>
+            <div className="sensor-progress">
               <div 
-                className="progress-fill" 
-                style={{ width: `${humidityProgress}%` }}
-              ></div>
+                className="sensor-progress-bar" 
+                style={{ width: `${humidity}%` }}
+              />
             </div>
           </div>
 
-          <div className={`sensor-card 
-            ${soil < 30 ? "dry-card" : ""}`}
-          >
-
-            <div className="sensor-header">
-              <h3>🌱 Soil</h3>
-              <h2 className="sensor-value">{soil}%</h2>
+          {/* Soil Card */}
+          <div className="sensor-card">
+            <div className="sensor-card-header">
+              <span className="sensor-icon">🌱</span>
+              <span>Soil</span>
             </div>
-            <div className="progress-bar">
+            <div className="sensor-value">{soil}%</div>
+            <div className="sensor-progress">
               <div 
-                className="progress-fill" 
-                style={{ width: `${soilProgress}%` }}
-              ></div>
+                className="sensor-progress-bar" 
+                style={{ width: `${soil}%` }}
+              />
             </div>
           </div>
 
-          <div className={`sensor-card 
-            ${rain === 1 ? "rain-card" : ""}`}
-          >
-
-            <div className="sensor-header">
-              <h3>☁ Rain</h3>
-              <h2 className="sensor-value">{rain ? "YES" : "NO"}</h2>
+          {/* Rain Card */}
+          <div className="sensor-card">
+            <div className="sensor-card-header">
+              <span className="sensor-icon">☁️</span>
+              <span>Rain</span>
             </div>
-            <div className="progress-bar">
+            <div className="sensor-value">{rain ? "YES" : "NO"}</div>
+            <div className="sensor-progress">
               <div 
-                className="progress-fill" 
-                style={{ width: rain ? "100%" : "0%" }}
-              ></div>
+                className="sensor-progress-bar" 
+                style={{ width: rain ? '100%' : '0%' }}
+              />
             </div>
           </div>
         </div>
 
         {/* OVERVIEW SECTION */}
         <div className="overview-section">
-          <h2 className="section-title">Overview</h2>
+          <h2 className="overview-title">Overview</h2>
           
           <div className="overview-grid">
+            {/* System Status */}
             <div className="overview-card">
               <h3>System Status</h3>
               <p>All sensors connected</p>
             </div>
 
+            {/* Last Reading */}
             <div className="overview-card">
               <h3>Last reading</h3>
-              <p>Temp: {temp}°C · Humidity: {humidity}% · Soil: {soil}%</p>
+              <p>
+                Temp: {temp}°C · Humidity: {humidity}% · Soil: {soil}%
+              </p>
             </div>
 
+            {/* Rain Status */}
             <div className="overview-card">
               <h3>Rain</h3>
               <p>{rain ? "Precipitation detected" : "No precipitation"}</p>
             </div>
 
+            {/* Quick Actions */}
             <div className="overview-card">
               <h3>Quick actions</h3>
               <button 
-                className="action-btn" 
+                className="quick-action-btn"
                 onClick={() => setPage("analytics")}
               >
                 Open Analytics
