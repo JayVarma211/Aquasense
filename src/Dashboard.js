@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { FaMoon, FaSun, FaSignOutAlt, FaBars, FaBell, FaCog } from "react-icons/fa";
+import {
+  FaMoon,
+  FaSun,
+  FaSignOutAlt,
+  FaBars,
+  FaBell
+} from "react-icons/fa";
 
 export default function Dashboard({ sensor, setUser, setPage }) {
   const [theme, setTheme] = useState(
@@ -9,20 +15,26 @@ export default function Dashboard({ sensor, setUser, setPage }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
   const [raindrops, setRaindrops] = useState([]);
 
-  // Extract data early to avoid conditional hook calls
+  /* =========================
+     SENSOR DATA NORMALIZATION
+  ========================= */
   const data = sensor?.sensor_data ?? sensor ?? {};
-  
-  // Parse all sensor values properly using exact database field names
+
   const temp = parseFloat(data.temperature) || 0;
   const humidity = parseFloat(data.humidity) || 0;
   const soil = parseFloat(data.soil_moisture_level) || 0;
   const rain = Boolean(data.is_rain);
 
+  /* =========================
+     THEME PERSISTENCE
+  ========================= */
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Handle window resize for sidebar
+  /* =========================
+     SIDEBAR RESPONSIVE CONTROL
+  ========================= */
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 900) {
@@ -32,20 +44,21 @@ export default function Dashboard({ sensor, setUser, setPage }) {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Generate full-page raindrops immediately when rain status changes
+  /* =========================
+     RAIN EFFECT GENERATION
+  ========================= */
   useEffect(() => {
     if (rain) {
-      // Generate more raindrops for full page coverage (80 drops)
       const drops = Array.from({ length: 80 }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
-        duration: 1.2 + Math.random() * 1,
-        delay: Math.random() * 0.5, // Reduced delay for immediate start
-        height: 40 + Math.random() * 30
+        height: 40 + Math.random() * 30,
+        duration: 1.2 + Math.random(),
+        delay: Math.random() * 0.5
       }));
       setRaindrops(drops);
     } else {
@@ -53,10 +66,14 @@ export default function Dashboard({ sensor, setUser, setPage }) {
     }
   }, [rain]);
 
+  /* =========================
+     ACTIONS
+  ========================= */
   const toggleTheme = () =>
     setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  const toggleSidebar = () => setSidebarOpen((s) => !s);
+  const toggleSidebar = () =>
+    setSidebarOpen((s) => !s);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -64,33 +81,36 @@ export default function Dashboard({ sensor, setUser, setPage }) {
     setPage("login");
   };
 
-  // Show loading only after all hooks have been called
   if (!sensor) {
     return <div className="loading">Loading...</div>;
   }
 
   return (
     <div className={`dashboard-layout ${theme === "dark" ? "dark" : ""}`}>
-      
-      {/* FULL PAGE RAIN ANIMATION */}
+
+      {/* =========================
+         FULL PAGE RAIN EFFECT
+      ========================= */}
       {rain && (
         <div className="full-page-rain">
-          {raindrops.map((drop) => (
+          {raindrops.map((d) => (
             <div
-              key={drop.id}
+              key={d.id}
               className="full-page-raindrop"
               style={{
-                left: `${drop.left}%`,
-                height: `${drop.height}px`,
-                animationDuration: `${drop.duration}s`,
-                animationDelay: `${drop.delay}s`
+                left: `${d.left}%`,
+                height: `${d.height}px`,
+                animationDuration: `${d.duration}s`,
+                animationDelay: `${d.delay}s`
               }}
             />
           ))}
         </div>
       )}
 
-      {/* SIDEBAR */}
+      {/* =========================
+         SIDEBAR
+      ========================= */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <img src="logo192.png" alt="logo" />
@@ -108,14 +128,29 @@ export default function Dashboard({ sensor, setUser, setPage }) {
         </ul>
       </aside>
 
-      {/* OVERLAY (for mobile/tablet click-out) */}
+      {/* =========================
+         MOBILE OVERLAY
+      ========================= */}
       {sidebarOpen && window.innerWidth <= 900 && (
-        <div className="sidebar-overlay show" onClick={toggleSidebar} />
+        <div
+          className="sidebar-overlay show"
+          onClick={toggleSidebar}
+        />
       )}
 
-      {/* MAIN */}
-      <main className={`dashboard-main ${sidebarOpen && window.innerWidth > 900 ? "sidebar-open" : ""}`}>
+      {/* =========================
+         MAIN CONTENT
+      ========================= */}
+      <main
+        className={`dashboard-main ${
+          sidebarOpen && window.innerWidth > 900 ? "sidebar-open" : ""
+        }`}
+      >
+        {/* =========================
+           HEADER
+        ========================= */}
         <header className="dashboard-header">
+          {/* ☰ MENU BUTTON — KEPT */}
           <button className="menu-btn" onClick={toggleSidebar}>
             <FaBars />
           </button>
@@ -124,7 +159,7 @@ export default function Dashboard({ sensor, setUser, setPage }) {
 
           <div className="header-right">
             <span className="update-badge">Updated N/A</span>
-            
+
             <button className="icon-btn">
               <FaBell />
             </button>
@@ -133,19 +168,19 @@ export default function Dashboard({ sensor, setUser, setPage }) {
               {theme === "dark" ? <FaSun /> : <FaMoon />}
             </button>
 
-            <button className="icon-btn">
-              <FaCog />
-            </button>
+            {/* ⚠️ SETTINGS BUTTON REMOVED (AS REQUESTED) */}
 
             <button className="logout-btn" onClick={handleLogout}>
-              <FaSignOutAlt /> <span>Sign out</span>
+              <FaSignOutAlt />
+              <span> Sign out</span>
             </button>
           </div>
         </header>
 
-        {/* SENSOR CARDS */}
+        {/* =========================
+           SENSOR CARDS
+        ========================= */}
         <div className="sensor-grid">
-          {/* Temperature Card */}
           <div className="sensor-card">
             <div className="sensor-card-header">
               <span className="sensor-icon">🌡️</span>
@@ -153,14 +188,15 @@ export default function Dashboard({ sensor, setUser, setPage }) {
             </div>
             <div className="sensor-value">{temp}°C</div>
             <div className="sensor-progress">
-              <div 
-                className="sensor-progress-bar" 
-                style={{ width: `${Math.min((temp / 50) * 100, 100)}%` }}
+              <div
+                className="sensor-progress-bar"
+                style={{
+                  width: `${Math.min((temp / 50) * 100, 100)}%`
+                }}
               />
             </div>
           </div>
 
-          {/* Humidity Card */}
           <div className="sensor-card">
             <div className="sensor-card-header">
               <span className="sensor-icon">💧</span>
@@ -168,14 +204,13 @@ export default function Dashboard({ sensor, setUser, setPage }) {
             </div>
             <div className="sensor-value">{humidity}%</div>
             <div className="sensor-progress">
-              <div 
-                className="sensor-progress-bar" 
+              <div
+                className="sensor-progress-bar"
                 style={{ width: `${humidity}%` }}
               />
             </div>
           </div>
 
-          {/* Soil Card */}
           <div className="sensor-card">
             <div className="sensor-card-header">
               <span className="sensor-icon">🌱</span>
@@ -183,14 +218,13 @@ export default function Dashboard({ sensor, setUser, setPage }) {
             </div>
             <div className="sensor-value">{soil}%</div>
             <div className="sensor-progress">
-              <div 
-                className="sensor-progress-bar" 
+              <div
+                className="sensor-progress-bar"
                 style={{ width: `${soil}%` }}
               />
             </div>
           </div>
 
-          {/* Rain Card */}
           <div className="sensor-card">
             <div className="sensor-card-header">
               <span className="sensor-icon">☁️</span>
@@ -198,26 +232,26 @@ export default function Dashboard({ sensor, setUser, setPage }) {
             </div>
             <div className="sensor-value">{rain ? "YES" : "NO"}</div>
             <div className="sensor-progress">
-              <div 
-                className="sensor-progress-bar" 
-                style={{ width: rain ? '100%' : '0%' }}
+              <div
+                className="sensor-progress-bar"
+                style={{ width: rain ? "100%" : "0%" }}
               />
             </div>
           </div>
         </div>
 
-        {/* OVERVIEW SECTION */}
+        {/* =========================
+           OVERVIEW
+        ========================= */}
         <div className="overview-section">
           <h2 className="overview-title">Overview</h2>
-          
+
           <div className="overview-grid">
-            {/* System Status */}
             <div className="overview-card">
               <h3>System Status</h3>
               <p>All sensors connected</p>
             </div>
 
-            {/* Last Reading */}
             <div className="overview-card">
               <h3>Last reading</h3>
               <p>
@@ -225,16 +259,14 @@ export default function Dashboard({ sensor, setUser, setPage }) {
               </p>
             </div>
 
-            {/* Rain Status */}
             <div className="overview-card">
               <h3>Rain</h3>
               <p>{rain ? "Precipitation detected" : "No precipitation"}</p>
             </div>
 
-            {/* Quick Actions */}
             <div className="overview-card">
               <h3>Quick actions</h3>
-              <button 
+              <button
                 className="quick-action-btn"
                 onClick={() => setPage("analytics")}
               >
