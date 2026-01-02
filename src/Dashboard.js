@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./Dashboard.css";
 import {
   FaMoon,
@@ -7,68 +7,93 @@ import {
   FaBars,
   FaBell
 } from "react-icons/fa";
+import { ref, onValue, set, push } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, database } from "./firebase";
 
-export default function Dashboard({ sensor, setUser, setPage }) {
+export default function Dashboard({ setUser, setPage }) {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 900);
-  const [raindrops, setRaindrops] = useState([]);
+  const [data, setData] = useState(null);
 
-  /* =========================
-     SENSOR DATA NORMALIZATION
-  ========================= */
-  const data = sensor?.sensor_data ?? sensor ?? {};
+  const pushIntervalRef = useRef(null);
+  const currentUidRef = useRef(null);
 
-  const temp = parseFloat(data.temperature) || 0;
-  const humidity = parseFloat(data.humidity) || 0;
-  const soil = parseFloat(data.soil_moisture_level) || 0;
-  const rain = Boolean(data.is_rain);
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        if (pushIntervalRef.current) {
+          clearInterval(pushIntervalRef.current);
+          pushIntervalRef.current = null;
+        }
+        currentUidRef.current = null;
+        setData(null);
+        return;
+      }
 
-  /* =========================
-     THEME PERSISTENCE
-  ========================= */
+      const uid = user.uid;
+
+      if (currentUidRef.current && currentUidRef.current !== uid) {
+        clearInterval(pushIntervalRef.current);
+        pushIntervalRef.current = null;
+      }
+
+      currentUidRef.current = uid;
+
+      const latestRef = ref(database, `users/${uid}/sensorData/latest`);
+
+      const unsubDb = onValue(latestRef, (snap) => {
+        if (snap.exists()) {
+          setData(snap.val());
+        } else {
+          setData({ temp: 0, humidity: 0, soil: 0 });
+        }
+      });
+
+      if (!pushIntervalRef.current) {
+        pushIntervalRef.current = setInterval(() => {
+          const now = Date.now();
+
+          const sensorData = {
+            temp: Math.floor(20 + Math.random() * 10),
+            humidity: Math.floor(40 + Math.random() * 20),
+            soil: Math.floor(30 + Math.random() * 30),
+            timestamp: now
+          };
+
+          set(ref(database, `users/${uid}/sensorData/latest`), sensorData);
+          push(ref(database, `users/${uid}/sensorData/history`), sensorData);
+        }, 5000);
+      }
+
+      return () => unsubDb();
+    });
+
+    return () => {
+      if (pushIntervalRef.current) {
+        clearInterval(pushIntervalRef.current);
+      }
+      unsubAuth();
+    };
+  }, []);
+
+  const temp = data?.temp ?? 0;
+  const humidity = data?.humidity ?? 0;
+  const soil = data?.soil ?? 0;
+  const rain = temp > 25 && humidity > 70; // Rain logic
+
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  /* =========================
-     SIDEBAR RESPONSIVE CONTROL
-  ========================= */
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 900) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const resize = () => setSidebarOpen(window.innerWidth > 900);
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
   }, []);
 
-  /* =========================
-     RAIN EFFECT GENERATION
-  ========================= */
-  useEffect(() => {
-    if (rain) {
-      const drops = Array.from({ length: 80 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        height: 40 + Math.random() * 30,
-        duration: 1.2 + Math.random(),
-        delay: Math.random() * 0.5
-      }));
-      setRaindrops(drops);
-    } else {
-      setRaindrops([]);
-    }
-  }, [rain]);
-
-  /* =========================
-     ACTIONS
-  ========================= */
   const toggleTheme = () =>
     setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -76,41 +101,23 @@ export default function Dashboard({ sensor, setUser, setPage }) {
     setSidebarOpen((s) => !s);
 
   const handleLogout = () => {
+    if (pushIntervalRef.current) {
+      clearInterval(pushIntervalRef.current);
+      pushIntervalRef.current = null;
+    }
     localStorage.clear();
     setUser(null);
     setPage("login");
   };
 
-  if (!sensor) {
+  if (!data) {
     return <div className="loading">Loading...</div>;
   }
 
   return (
     <div className={`dashboard-layout ${theme === "dark" ? "dark" : ""}`}>
+      {rain && <RainEffect />}
 
-      {/* =========================
-         FULL PAGE RAIN EFFECT
-      ========================= */}
-      {rain && (
-        <div className="full-page-rain">
-          {raindrops.map((d) => (
-            <div
-              key={d.id}
-              className="full-page-raindrop"
-              style={{
-                left: `${d.left}%`,
-                height: `${d.height}px`,
-                animationDuration: `${d.duration}s`,
-                animationDelay: `${d.delay}s`
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* =========================
-         SIDEBAR
-      ========================= */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <img src="logo192.png" alt="logo" />
@@ -123,34 +130,15 @@ export default function Dashboard({ sensor, setUser, setPage }) {
         <ul className="sidebar-menu">
           <li className="active">Dashboard</li>
           <li onClick={() => setPage("analytics")}>Analytics</li>
-          <li>Reports</li>
-          <li>Settings</li>
         </ul>
       </aside>
 
-      {/* =========================
-         MOBILE OVERLAY
-      ========================= */}
-      {sidebarOpen && window.innerWidth <= 900 && (
-        <div
-          className="sidebar-overlay show"
-          onClick={toggleSidebar}
-        />
-      )}
-
-      {/* =========================
-         MAIN CONTENT
-      ========================= */}
       <main
         className={`dashboard-main ${
           sidebarOpen && window.innerWidth > 900 ? "sidebar-open" : ""
         }`}
       >
-        {/* =========================
-           HEADER
-        ========================= */}
         <header className="dashboard-header">
-          {/* ☰ MENU BUTTON — KEPT */}
           <button className="menu-btn" onClick={toggleSidebar}>
             <FaBars />
           </button>
@@ -158,8 +146,6 @@ export default function Dashboard({ sensor, setUser, setPage }) {
           <h1>AquaSense Dashboard</h1>
 
           <div className="header-right">
-            <span className="update-badge">Updated N/A</span>
-
             <button className="icon-btn">
               <FaBell />
             </button>
@@ -168,8 +154,6 @@ export default function Dashboard({ sensor, setUser, setPage }) {
               {theme === "dark" ? <FaSun /> : <FaMoon />}
             </button>
 
-            {/* ⚠️ SETTINGS BUTTON REMOVED (AS REQUESTED) */}
-
             <button className="logout-btn" onClick={handleLogout}>
               <FaSignOutAlt />
               <span> Sign out</span>
@@ -177,105 +161,79 @@ export default function Dashboard({ sensor, setUser, setPage }) {
           </div>
         </header>
 
-        {/* =========================
-           SENSOR CARDS
-        ========================= */}
         <div className="sensor-grid">
-          <div className="sensor-card">
-            <div className="sensor-card-header">
-              <span className="sensor-icon">🌡️</span>
-              <span>Temperature</span>
-            </div>
-            <div className="sensor-value">{temp}°C</div>
-            <div className="sensor-progress">
-              <div
-                className="sensor-progress-bar"
-                style={{
-                  width: `${Math.min((temp / 50) * 100, 100)}%`
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="sensor-card">
-            <div className="sensor-card-header">
-              <span className="sensor-icon">💧</span>
-              <span>Humidity</span>
-            </div>
-            <div className="sensor-value">{humidity}%</div>
-            <div className="sensor-progress">
-              <div
-                className="sensor-progress-bar"
-                style={{ width: `${humidity}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="sensor-card">
-            <div className="sensor-card-header">
-              <span className="sensor-icon">🌱</span>
-              <span>Soil</span>
-            </div>
-            <div className="sensor-value">{soil}%</div>
-            <div className="sensor-progress">
-              <div
-                className="sensor-progress-bar"
-                style={{ width: `${soil}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="sensor-card">
-            <div className="sensor-card-header">
-              <span className="sensor-icon">☁️</span>
-              <span>Rain</span>
-            </div>
-            <div className="sensor-value">{rain ? "YES" : "NO"}</div>
-            <div className="sensor-progress">
-              <div
-                className="sensor-progress-bar"
-                style={{ width: rain ? "100%" : "0%" }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* =========================
-           OVERVIEW
-        ========================= */}
-        <div className="overview-section">
-          <h2 className="overview-title">Overview</h2>
-
-          <div className="overview-grid">
-            <div className="overview-card">
-              <h3>System Status</h3>
-              <p>All sensors connected</p>
-            </div>
-
-            <div className="overview-card">
-              <h3>Last reading</h3>
-              <p>
-                Temp: {temp}°C · Humidity: {humidity}% · Soil: {soil}%
-              </p>
-            </div>
-
-            <div className="overview-card">
-              <h3>Rain</h3>
-              <p>{rain ? "Precipitation detected" : "No precipitation"}</p>
-            </div>
-
-            <div className="overview-card">
-              <h3>Quick actions</h3>
-              <button
-                className="quick-action-btn"
-                onClick={() => setPage("analytics")}
-              >
-                Open Analytics
-              </button>
-            </div>
-          </div>
+          <SensorCard 
+            title="Temperature" 
+            value={`${temp}°C`} 
+            percent={(temp / 50) * 100}
+            isHot={temp > 28}
+          />
+          <SensorCard 
+            title="Humidity" 
+            value={`${humidity}%`} 
+            percent={humidity}
+            isHighHumidity={humidity > 70}
+          />
+          <SensorCard 
+            title="Soil" 
+            value={`${soil}%`} 
+            percent={soil}
+            isLowSoil={soil < 40}
+          />
+          <SensorCard 
+            title="Rain" 
+            value={rain ? "YES" : "NO"} 
+            percent={rain ? 100 : 0}
+            isRaining={rain}
+          />
         </div>
       </main>
+    </div>
+  );
+}
+
+function SensorCard({ title, value, percent, isHot, isHighHumidity, isLowSoil, isRaining }) {
+  let className = "sensor-card";
+  
+  if (isHot) className += " temp-hot";
+  if (isHighHumidity) className += " humidity-high";
+  if (isLowSoil) className += " soil-low";
+  
+  return (
+    <div className={className}>
+      <div className="sensor-card-header">{title}</div>
+      <div className="sensor-value">{value}</div>
+      <div className="sensor-progress">
+        <div
+          className="sensor-progress-bar"
+          style={{ width: `${Math.min(percent, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RainEffect() {
+  const drops = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    animationDelay: Math.random() * 2,
+    animationDuration: 0.5 + Math.random() * 0.5
+  }));
+
+  return (
+    <div className="rain-effect">
+      {drops.map((drop) => (
+        <div
+          key={drop.id}
+          className="raindrop"
+          style={{
+            left: `${drop.left}%`,
+            animationDelay: `${drop.animationDelay}s`,
+            animationDuration: `${drop.animationDuration}s`
+          }}
+        />
+      ))}
     </div>
   );
 }
