@@ -5,6 +5,7 @@ import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
 import Analytics from "./Analytics";
+import Settings from "./Settings";
 import "./App.css";
 
 function App() {
@@ -89,6 +90,9 @@ function App() {
       {page === "analytics" && (
         <Analytics setPage={setPage} sensor={sensor} />
       )}
+
+      {page === "settings" && <Settings setPage={setPage} />}
+
     </div>
   );
 }

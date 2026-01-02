@@ -5,7 +5,10 @@ import {
   FaSun,
   FaSignOutAlt,
   FaBars,
-  FaBell
+  FaBell,
+  FaCog,
+  FaChartLine,
+  FaHome
 } from "react-icons/fa";
 import { ref, onValue, set, push } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
@@ -21,25 +24,20 @@ export default function Dashboard({ setUser, setPage }) {
   const pushIntervalRef = useRef(null);
   const currentUidRef = useRef(null);
 
+  /* =========================
+     AUTH + LIVE SENSOR DATA
+  ========================= */
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        if (pushIntervalRef.current) {
-          clearInterval(pushIntervalRef.current);
-          pushIntervalRef.current = null;
-        }
+        clearInterval(pushIntervalRef.current);
+        pushIntervalRef.current = null;
         currentUidRef.current = null;
         setData(null);
         return;
       }
 
       const uid = user.uid;
-
-      if (currentUidRef.current && currentUidRef.current !== uid) {
-        clearInterval(pushIntervalRef.current);
-        pushIntervalRef.current = null;
-      }
-
       currentUidRef.current = uid;
 
       const latestRef = ref(database, `users/${uid}/sensorData/latest`);
@@ -54,13 +52,11 @@ export default function Dashboard({ setUser, setPage }) {
 
       if (!pushIntervalRef.current) {
         pushIntervalRef.current = setInterval(() => {
-          const now = Date.now();
-
           const sensorData = {
             temp: Math.floor(20 + Math.random() * 10),
             humidity: Math.floor(40 + Math.random() * 20),
             soil: Math.floor(30 + Math.random() * 30),
-            timestamp: now
+            timestamp: Date.now()
           };
 
           set(ref(database, `users/${uid}/sensorData/latest`), sensorData);
@@ -72,18 +68,22 @@ export default function Dashboard({ setUser, setPage }) {
     });
 
     return () => {
-      if (pushIntervalRef.current) {
-        clearInterval(pushIntervalRef.current);
-      }
+      clearInterval(pushIntervalRef.current);
       unsubAuth();
     };
   }, []);
 
+  /* =========================
+     SAFE VALUES
+  ========================= */
   const temp = data?.temp ?? 0;
   const humidity = data?.humidity ?? 0;
   const soil = data?.soil ?? 0;
-  const rain = temp > 25 && humidity > 70; // Rain logic
+  const rain = temp > 25 && humidity > 70;
 
+  /* =========================
+     UI CONTROLS
+  ========================= */
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
@@ -101,10 +101,7 @@ export default function Dashboard({ setUser, setPage }) {
     setSidebarOpen((s) => !s);
 
   const handleLogout = () => {
-    if (pushIntervalRef.current) {
-      clearInterval(pushIntervalRef.current);
-      pushIntervalRef.current = null;
-    }
+    clearInterval(pushIntervalRef.current);
     localStorage.clear();
     setUser(null);
     setPage("login");
@@ -118,6 +115,9 @@ export default function Dashboard({ setUser, setPage }) {
     <div className={`dashboard-layout ${theme === "dark" ? "dark" : ""}`}>
       {rain && <RainEffect />}
 
+      {/* =========================
+         SIDEBAR
+      ========================= */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <img src="logo192.png" alt="logo" />
@@ -128,11 +128,23 @@ export default function Dashboard({ setUser, setPage }) {
         </div>
 
         <ul className="sidebar-menu">
-          <li className="active">Dashboard</li>
-          <li onClick={() => setPage("analytics")}>Analytics</li>
+          <li className="active" onClick={() => setPage("dashboard")}>
+            <FaHome /> Dashboard
+          </li>
+
+          <li onClick={() => setPage("analytics")}>
+            <FaChartLine /> Analytics
+          </li>
+
+          <li onClick={() => setPage("settings")}>
+            <FaCog /> Settings
+          </li>
         </ul>
       </aside>
 
+      {/* =========================
+         MAIN
+      ========================= */}
       <main
         className={`dashboard-main ${
           sidebarOpen && window.innerWidth > 900 ? "sidebar-open" : ""
@@ -162,45 +174,22 @@ export default function Dashboard({ setUser, setPage }) {
         </header>
 
         <div className="sensor-grid">
-          <SensorCard 
-            title="Temperature" 
-            value={`${temp}°C`} 
-            percent={(temp / 50) * 100}
-            isHot={temp > 28}
-          />
-          <SensorCard 
-            title="Humidity" 
-            value={`${humidity}%`} 
-            percent={humidity}
-            isHighHumidity={humidity > 70}
-          />
-          <SensorCard 
-            title="Soil" 
-            value={`${soil}%`} 
-            percent={soil}
-            isLowSoil={soil < 40}
-          />
-          <SensorCard 
-            title="Rain" 
-            value={rain ? "YES" : "NO"} 
-            percent={rain ? 100 : 0}
-            isRaining={rain}
-          />
+          <SensorCard title="Temperature" value={`${temp}°C`} percent={(temp / 50) * 100} />
+          <SensorCard title="Humidity" value={`${humidity}%`} percent={humidity} />
+          <SensorCard title="Soil" value={`${soil}%`} percent={soil} />
+          <SensorCard title="Rain" value={rain ? "YES" : "NO"} percent={rain ? 100 : 0} />
         </div>
       </main>
     </div>
   );
 }
 
-function SensorCard({ title, value, percent, isHot, isHighHumidity, isLowSoil, isRaining }) {
-  let className = "sensor-card";
-  
-  if (isHot) className += " temp-hot";
-  if (isHighHumidity) className += " humidity-high";
-  if (isLowSoil) className += " soil-low";
-  
+/* =========================
+   COMPONENTS
+========================= */
+function SensorCard({ title, value, percent }) {
   return (
-    <div className={className}>
+    <div className="sensor-card">
       <div className="sensor-card-header">{title}</div>
       <div className="sensor-value">{value}</div>
       <div className="sensor-progress">
@@ -214,25 +203,10 @@ function SensorCard({ title, value, percent, isHot, isHighHumidity, isLowSoil, i
 }
 
 function RainEffect() {
-  const drops = Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    animationDelay: Math.random() * 2,
-    animationDuration: 0.5 + Math.random() * 0.5
-  }));
-
   return (
     <div className="rain-effect">
-      {drops.map((drop) => (
-        <div
-          key={drop.id}
-          className="raindrop"
-          style={{
-            left: `${drop.left}%`,
-            animationDelay: `${drop.animationDelay}s`,
-            animationDuration: `${drop.animationDuration}s`
-          }}
-        />
+      {Array.from({ length: 50 }).map((_, i) => (
+        <div key={i} className="raindrop" />
       ))}
     </div>
   );
