@@ -101,10 +101,12 @@ export default function Dashboard({ setUser, setPage }) {
     setSidebarOpen((s) => !s);
 
   const handleLogout = () => {
-    clearInterval(pushIntervalRef.current);
-    localStorage.clear();
-    setUser(null);
-    setPage("login");
+    if (window.confirm("Are you sure you want to sign out?")) {
+      clearInterval(pushIntervalRef.current);
+      localStorage.clear();
+      setUser(null);
+      setPage("login");
+    }
   };
 
   if (!data) {

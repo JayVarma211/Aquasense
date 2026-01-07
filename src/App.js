@@ -51,15 +51,28 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setPage("dashboard");
+        // Restore the previously visited page if it exists in localStorage
+        const savedPage = localStorage.getItem("currentPage");
+        const pageToSet = savedPage && ["dashboard", "analytics", "settings"].includes(savedPage) 
+          ? savedPage 
+          : "dashboard";
+        setPage(pageToSet);
       } else {
         setUser(null);
         setPage("login");
+        localStorage.removeItem("currentPage");
       }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  // Save current page to localStorage when it changes
+  useEffect(() => {
+    if (user && page !== "login") {
+      localStorage.setItem("currentPage", page);
+    }
+  }, [page, user]);
 
   useEffect(() => {
     if (user && page === "dashboard") {
@@ -88,10 +101,10 @@ function App() {
       )}
 
       {page === "analytics" && (
-        <Analytics setPage={setPage} sensor={sensor} />
+        <Analytics setPage={setPage} setUser={setUser} sensor={sensor} />
       )}
 
-      {page === "settings" && <Settings setPage={setPage} />}
+      {page === "settings" && <Settings setPage={setPage} setUser={setUser} />}
 
     </div>
   );

@@ -9,14 +9,39 @@ import {
   CartesianGrid,
   Legend
 } from "recharts";
+import { FaMoon, FaSun, FaSignOutAlt } from "react-icons/fa";
 import "./Analytics.css";
 
 const UPDATE_INTERVAL = 10000; // 10 seconds
 const MAX_POINTS = 20; // Keep last 20 data points
 
-export default function Analytics({ setPage }) {
+export default function Analytics({ setPage, setUser }) {
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
   const [data, setData] = useState([]);
 
+  /* =========================
+     THEME MANAGEMENT
+  ========================= */
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to sign out?")) {
+      localStorage.clear();
+      setUser(null);
+      setPage("login");
+    }
+  };
+
+  /* =========================
+     DATA INITIALIZATION
+  ========================= */
   useEffect(() => {
     // Initialize with some historical data
     const now = Date.now();
@@ -57,12 +82,21 @@ export default function Analytics({ setPage }) {
   };
 
   return (
-    <div className="analytics-page">
+    <div className={`analytics-page ${theme === "dark" ? "dark" : ""}`}>
       <div className="analytics-top">
         <h1>Real-Time Analytics</h1>
-        <button className="back-btn" onClick={() => setPage("dashboard")}>
-          <span className="back-icon">←</span> Back
-        </button>
+        <div className="analytics-controls">
+          <button className="icon-btn" onClick={toggleTheme}>
+            {theme === "dark" ? <FaSun /> : <FaMoon />}
+          </button>
+          <button className="back-btn" onClick={() => setPage("dashboard")}>
+            <span className="back-icon">←</span> Back
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <FaSignOutAlt />
+            <span> Sign out</span>
+          </button>
+        </div>
       </div>
 
       <div className="analytics-charts">

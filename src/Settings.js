@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FaSave, FaToggleOn, FaToggleOff, FaClock, FaThermometerHalf, FaTint, FaSeedling, FaBell, FaWifi, FaTrash, FaPlus } from "react-icons/fa";
+import { FaSave, FaToggleOn, FaToggleOff, FaClock, FaThermometerHalf, FaTint, FaSeedling, FaBell, FaWifi, FaTrash, FaPlus, FaMoon, FaSun, FaSignOutAlt } from "react-icons/fa";
+import "./Settings.css";
 
-export default function Settings({ setPage }) {
+export default function Settings({ setPage, setUser }) {
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
   const [mode, setMode] = useState("auto");
   const [pumpStatus, setPumpStatus] = useState(false);
   const [thresholds, setThresholds] = useState({
@@ -81,16 +85,41 @@ export default function Settings({ setPage }) {
     }));
   };
 
+  /* =========================
+     THEME MANAGEMENT
+  ========================= */
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to sign out?")) {
+      localStorage.clear();
+      setUser(null);
+      setPage("login");
+    }
+  };
+
   return (
-    <div className="settings-page">
+    <div className={`settings-page ${theme === "dark" ? "dark" : ""}`}>
       <div className="settings-header">
         <h1>System Settings</h1>
         <div className="header-actions">
+          <button className="icon-btn" onClick={toggleTheme}>
+            {theme === "dark" ? <FaSun /> : <FaMoon />}
+          </button>
           <button className="save-btn" onClick={handleSave}>
             <FaSave /> Save All Changes
           </button>
           <button className="back-btn" onClick={() => setPage("dashboard")}>
             ← Back
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <FaSignOutAlt />
+            <span> Sign out</span>
           </button>
         </div>
       </div>
@@ -98,7 +127,7 @@ export default function Settings({ setPage }) {
       <div className="settings-grid">
         {/* Control Mode */}
         <div className="settings-card">
-          <h2>Control Mode</h2>
+          <h2 style={{ color: theme === "dark" ? "white" : "#062826" }}>Control Mode</h2>
           <div className="mode-selector">
             <button 
               className={`mode-btn ${mode === "auto" ? "active" : ""}`}
@@ -136,7 +165,7 @@ export default function Settings({ setPage }) {
           <h2><FaThermometerHalf /> Sensor Thresholds</h2>
           <div className="threshold-grid">
             <div className="threshold-item">
-              <label><FaThermometerHalf /> Temperature Max (°C)</label>
+              <label style={{ color: "white" }}><FaThermometerHalf /> Temperature Max (°C)</label>
               <input 
                 type="number" 
                 value={thresholds.tempMax}
@@ -144,7 +173,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label><FaThermometerHalf /> Temperature Min (°C)</label>
+              <label style={{ color: "white" }}><FaThermometerHalf /> Temperature Min (°C)</label>
               <input 
                 type="number" 
                 value={thresholds.tempMin}
@@ -152,7 +181,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label><FaTint /> Humidity Max (%)</label>
+              <label style={{ color: "white" }}><FaTint /> Humidity Max (%)</label>
               <input 
                 type="number" 
                 value={thresholds.humidityMax}
@@ -160,7 +189,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label><FaTint /> Humidity Min (%)</label>
+              <label style={{ color: "white" }}><FaTint /> Humidity Min (%)</label>
               <input 
                 type="number" 
                 value={thresholds.humidityMin}
@@ -168,7 +197,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label><FaSeedling /> Soil Min (%)</label>
+              <label style={{ color: "white" }}><FaSeedling /> Soil Min (%)</label>
               <input 
                 type="number" 
                 value={thresholds.soilMin}
@@ -176,7 +205,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label><FaSeedling /> Soil Max (%)</label>
+              <label style={{ color: "white" }}><FaSeedling /> Soil Max (%)</label>
               <input 
                 type="number" 
                 value={thresholds.soilMax}
@@ -188,10 +217,10 @@ export default function Settings({ setPage }) {
 
         {/* Watering Preferences */}
         <div className="settings-card">
-          <h2><FaTint /> Watering Preferences</h2>
+          <h2 style={{ color: "white" }}><FaTint /> Watering Preferences</h2>
           <div className="threshold-grid">
             <div className="threshold-item">
-              <label>Flow Rate (L/min)</label>
+              <label style={{ color: "white" }}>Flow Rate (L/min)</label>
               <input 
                 type="number" 
                 value={wateringPreferences.flowRate}
@@ -199,7 +228,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label>Min Interval (minutes)</label>
+              <label style={{ color: "white" }}>Min Interval (minutes)</label>
               <input 
                 type="number" 
                 value={wateringPreferences.minInterval}
@@ -207,7 +236,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label>Max Duration (minutes)</label>
+              <label style={{ color: "white" }}>Max Duration (minutes)</label>
               <input 
                 type="number" 
                 value={wateringPreferences.maxDuration}
@@ -219,11 +248,11 @@ export default function Settings({ setPage }) {
 
         {/* Sensor Calibration */}
         <div className="settings-card">
-          <h2><FaWifi /> Sensor Calibration</h2>
-          <p className="card-description">Fine-tune sensor readings with offset values</p>
+          <h2 style={{ color: "white" }}><FaWifi /> Sensor Calibration</h2>
+          <p className="card-description" style={{ color: "white" }}>Fine-tune sensor readings with offset values</p>
           <div className="threshold-grid">
             <div className="threshold-item">
-              <label>Temperature Offset (°C)</label>
+              <label style={{ color: "white" }}>Temperature Offset (°C)</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -232,7 +261,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label>Humidity Offset (%)</label>
+              <label style={{ color: "white" }}>Humidity Offset (%)</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -241,7 +270,7 @@ export default function Settings({ setPage }) {
               />
             </div>
             <div className="threshold-item">
-              <label>Soil Offset (%)</label>
+              <label style={{ color: "white" }}>Soil Offset (%)</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -255,7 +284,7 @@ export default function Settings({ setPage }) {
         {/* Time-Based Scheduling */}
         <div className="settings-card wide">
           <div className="card-header-with-action">
-            <h2><FaClock /> Watering Schedules</h2>
+            <h2 style={{ color: "white" }}><FaClock /> Watering Schedules</h2>
             <button className="add-btn" onClick={addSchedule}>
               <FaPlus /> Add Schedule
             </button>
@@ -270,7 +299,7 @@ export default function Settings({ setPage }) {
                     onChange={(e) => updateSchedule(schedule.id, "time", e.target.value)}
                   />
                   <div className="input-group">
-                    <label>Duration (min)</label>
+                    <label style={{ color: "white" }}>Duration (min)</label>
                     <input 
                       type="number" 
                       value={schedule.duration}
@@ -310,10 +339,10 @@ export default function Settings({ setPage }) {
 
         {/* Notifications */}
         <div className="settings-card">
-          <h2><FaBell /> Notification Preferences</h2>
+          <h2 style={{ color: "white" }}><FaBell /> Notification Preferences</h2>
           <div className="toggle-list">
             <label className="toggle-item">
-              <span>Email Notifications</span>
+              <span style={{ color: "white" }}>Email Notifications</span>
               <input 
                 type="checkbox" 
                 checked={notifications.email}
@@ -321,7 +350,7 @@ export default function Settings({ setPage }) {
               />
             </label>
             <label className="toggle-item">
-              <span>SMS Alerts</span>
+              <span style={{ color: "white" }}>SMS Alerts</span>
               <input 
                 type="checkbox" 
                 checked={notifications.sms}
@@ -329,7 +358,7 @@ export default function Settings({ setPage }) {
               />
             </label>
             <label className="toggle-item">
-              <span>Push Notifications</span>
+              <span style={{ color: "white" }}>Push Notifications</span>
               <input 
                 type="checkbox" 
                 checked={notifications.push}
@@ -338,7 +367,7 @@ export default function Settings({ setPage }) {
             </label>
             <hr />
             <label className="toggle-item">
-              <span>Low Soil Alerts</span>
+              <span style={{ color: "white" }}>Low Soil Alerts</span>
               <input 
                 type="checkbox" 
                 checked={notifications.lowSoil}
@@ -346,7 +375,7 @@ export default function Settings({ setPage }) {
               />
             </label>
             <label className="toggle-item">
-              <span>High Temperature Alerts</span>
+              <span style={{ color: "white" }}>High Temperature Alerts</span>
               <input 
                 type="checkbox" 
                 checked={notifications.highTemp}
@@ -354,7 +383,7 @@ export default function Settings({ setPage }) {
               />
             </label>
             <label className="toggle-item">
-              <span>System Error Alerts</span>
+              <span style={{ color: "white" }}>System Error Alerts</span>
               <input 
                 type="checkbox" 
                 checked={notifications.systemError}
@@ -366,40 +395,40 @@ export default function Settings({ setPage }) {
 
         {/* Current Status */}
         <div className="settings-card">
-          <h2>Current System Status</h2>
+          <h2 style={{ color: "white" }}>Current System Status</h2>
           <div className="status-display">
             <div className="status-item">
-              <span className="label">Mode:</span>
+              <span className="label" style={{ color: "white" }}>Mode:</span>
               <span className={`value ${mode}`}>{mode.toUpperCase()}</span>
             </div>
             <div className="status-item">
-              <span className="label">Pump:</span>
+              <span className="label" style={{ color: "white" }}>Pump:</span>
               <span className={`value ${pumpStatus ? "on" : "off"}`}>
                 {pumpStatus ? "ON" : "OFF"}
               </span>
             </div>
             <div className="status-item">
-              <span className="label">Last Action:</span>
-              <span className="value">2 hours ago</span>
+              <span className="label" style={{ color: "white" }}>Last Action:</span>
+              <span className="value" style={{ color: "white" }}>2 hours ago</span>
             </div>
             <div className="status-item">
-              <span className="label">Next Schedule:</span>
-              <span className="value">Tomorrow 6:00 AM</span>
+              <span className="label" style={{ color: "white" }}>Next Schedule:</span>
+              <span className="value" style={{ color: "white" }}>Tomorrow 6:00 AM</span>
             </div>
           </div>
         </div>
 
         {/* Action History */}
         <div className="settings-card wide">
-          <h2>Action History</h2>
+          <h2 style={{ color: "white" }}>Action History</h2>
           <div className="logs-container">
             {logs.map(log => (
               <div key={log.id} className="log-item">
                 <div className="log-main">
-                  <span className="log-action">{log.action}</span>
-                  <span className="log-reason">{log.reason}</span>
+                  <span className="log-action" style={{ color: "white" }}>{log.action}</span>
+                  <span className="log-reason" style={{ color: "white" }}>{log.reason}</span>
                 </div>
-                <span className="log-time">{log.time}</span>
+                <span className="log-time" style={{ color: "white" }}>{log.time}</span>
               </div>
             ))}
           </div>
