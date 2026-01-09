@@ -4,10 +4,7 @@ import { Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Settings.css";
 
-export default function Settings({ setPage, setUser }) {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
-  );
+export default function Settings({ setPage, setUser, theme, setTheme }) {
   const [mode, setMode] = useState("auto");
   const [pumpStatus, setPumpStatus] = useState(false);
   const [thresholds, setThresholds] = useState({
@@ -87,15 +84,13 @@ export default function Settings({ setPage, setUser }) {
     }));
   };
 
+
   /* =========================
      THEME MANAGEMENT
   ========================= */
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
-
-  const toggleTheme = () =>
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to sign out?")) {
@@ -112,12 +107,12 @@ export default function Settings({ setPage, setUser }) {
         <div className="header-actions">
           <Button 
             className="icon-btn" 
-            onClick={toggleTheme}
+            onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}
           >
             {theme === "dark" ? <FaSun /> : <FaMoon />}
           </Button>
           <Button 
-            className="save-btn-bootstrap" 
+            className="save-btn-bootstrap"
             onClick={handleSave}
           >
             <FaSave /> Save All Changes

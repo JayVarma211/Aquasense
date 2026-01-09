@@ -8,6 +8,7 @@ import Analytics from "./Analytics";
 import Settings from "./Settings";
 import "./App.css";
 
+// Main App Component
 function App() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("login");
@@ -50,14 +51,28 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
-        // Restore the previously visited page if it exists in localStorage
-        const savedPage = localStorage.getItem("currentPage");
-        const pageToSet = savedPage && ["dashboard", "analytics", "settings"].includes(savedPage) 
-          ? savedPage 
-          : "dashboard";
-        setPage(pageToSet);
+        // Check if user has verified their email (for email/password signups)
+        // If email is verified OR user signed in with Google (which auto-verifies)
+        const isEmailVerified = currentUser.emailVerified;
+        const isGoogleUser = currentUser.providerData.some(provider => provider.providerId === 'google.com');
+        
+        // Allow access to dashboard only if email is verified or user is Google login
+        if (isEmailVerified || isGoogleUser) {
+          setUser(currentUser);
+          // Restore the previously visited page if it exists in localStorage
+          const savedPage = localStorage.getItem("currentPage");
+          const pageToSet = savedPage && ["dashboard", "analytics", "settings"].includes(savedPage) 
+            ? savedPage 
+            : "dashboard";
+          setPage(pageToSet);
+        } else {
+          // Email not verified yet - stay on verification page
+          setUser(null);
+          setPage("register");
+          localStorage.removeItem("currentPage");
+        }
       } else {
+        // No user logged in - always go to login page
         setUser(null);
         setPage("login");
         localStorage.removeItem("currentPage");
@@ -86,6 +101,11 @@ function App() {
     return <div className="app-loading">Loading AquaSense...</div>;
   }
 
+  // Unauthenticated users can only see login or register page
+  if (!user && page !== "login" && page !== "register") {
+    return <Login setUser={setUser} setPage={setPage} />;
+  }
+
   return (
     <div className="App">
       {page === "login" && <Login setUser={setUser} setPage={setPage} />}
@@ -97,14 +117,15 @@ function App() {
           user={user}
           setUser={setUser}
           setPage={setPage}
+          currentUser={user}
         />
       )}
 
       {page === "analytics" && (
-        <Analytics setPage={setPage} setUser={setUser} sensor={sensor} />
+        <Analytics setPage={setPage} setUser={setUser} sensor={sensor} currentUser={user} />
       )}
 
-      {page === "settings" && <Settings setPage={setPage} setUser={setUser} />}
+      {page === "settings" && <Settings setPage={setPage} setUser={setUser} currentUser={user} />}
 
     </div>
   );

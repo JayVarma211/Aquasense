@@ -11,68 +11,53 @@ import {
   FaHome
 } from "react-icons/fa";
 import { ref, onValue, set, push } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, database } from "./firebase";
+import Weather from "./Weather";
 
-export default function Dashboard({ setUser, setPage }) {
-  const [theme, setTheme] = useState("dark");
+const WEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
+const CITY = process.env.REACT_APP_WEATHER_CITY || process.env.REACT_APP_CITY || "Mumbai";
+
+export default function Dashboard({ setUser, setPage, theme, setTheme }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
-  const [data, setData] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [data, setData] = useState({
+    temp: 0,
+    humidity: 0,
+    soil: 0,
+    rain: false,
+    timestamp: Date.now()
+  });
   const [currentUser, setCurrentUser] = useState(null);
 
   const pushIntervalRef = useRef(null);
-  const currentUidRef = useRef(null);
 
   /* =========================
-     AUTH + LIVE SENSOR DATA
+     AUTH + SENSOR DATA
   ========================= */
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
         clearInterval(pushIntervalRef.current);
-        pushIntervalRef.current = null;
-        currentUidRef.current = null;
-        setData(null);
         setCurrentUser(null);
         return;
       }
 
-      const uid = user.uid;
-      currentUidRef.current = uid;
       setCurrentUser(user);
+      const uid = user.uid;
 
       const latestRef = ref(database, `users/${uid}/sensorData/latest`);
 
       const unsubDb = onValue(latestRef, (snap) => {
         if (snap.exists()) {
           setData(snap.val());
-        } else {
-          setData({ temp: 26, humidity: 57, soil: 32, rain: false });
         }
       });
-
-      if (!pushIntervalRef.current) {
-        pushIntervalRef.current = setInterval(() => {
-          const sensorData = {
-            temp: Math.floor(20 + Math.random() * 10),
-            humidity: Math.floor(40 + Math.random() * 35),
-            soil: Math.floor(30 + Math.random() * 35),
-            rain: Math.random() > 0.85,
-            timestamp: Date.now()
-          };
-
-          set(ref(database, `users/${uid}/sensorData/latest`), sensorData);
-          push(ref(database, `users/${uid}/sensorData/history`), sensorData);
-        }, 5000);
-      }
 
       return () => unsubDb();
     });
 
-    return () => {
-      clearInterval(pushIntervalRef.current);
-      unsubAuth();
-    };
+    return () => unsubAuth();
   }, []);
 
   /* =========================
@@ -87,43 +72,45 @@ export default function Dashboard({ setUser, setPage }) {
      UI CONTROLS
   ========================= */
   useEffect(() => {
-    const resize = () => {
-      if (window.innerWidth > 768) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarOpen(true); // Keep sidebar open on desktop
       }
     };
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const toggleTheme = () => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  };
-
+  const toggleTheme = () => setTheme(t => (t === "dark" ? "light" : "dark"));
   const toggleSidebar = () => {
-    setSidebarOpen((s) => !s);
-  };
-
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to sign out?")) {
-      clearInterval(pushIntervalRef.current);
-      localStorage.clear();
-      setUser(null);
-      setPage("login");
+    if (isMobile) {
+      setSidebarOpen(s => !s);
     }
   };
 
-  if (!data) {
-    return <div className="loading">Loading...</div>;
-  }
+  const handleLogout = () => {
+    signOut(auth).catch((e) => console.error("Sign out error:", e));
+    localStorage.clear();
+    setUser(null);
+    setPage("login");
+  };
 
-  const isMobile = window.innerWidth <= 768;
+  // Close sidebar when navigating on mobile
+  const handleNavigation = (page) => {
+    setPage(page);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
 
   return (
-    <div className={`dashboard-layout ${theme === "light" ? "light" : "dark"}`}>
-      {/* SIDEBAR */}
+    <div className={`dashboard-layout ${theme}`}>
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <img src="logo192.png" alt="logo" />
@@ -134,218 +121,66 @@ export default function Dashboard({ setUser, setPage }) {
         </div>
 
         <ul className="sidebar-menu">
-          <li className="active" onClick={() => setPage("dashboard")}>
+          <li onClick={() => handleNavigation("dashboard")} className="active">
             <FaHome /> Dashboard
           </li>
-
-          <li onClick={() => setPage("analytics")}>
+          <li onClick={() => handleNavigation("analytics")}>
             <FaChartLine /> Analytics
           </li>
-
-          <li onClick={() => setPage("settings")}>
+          <li onClick={() => handleNavigation("settings")}>
             <FaCog /> Settings
           </li>
         </ul>
-
-        <div className="user-greeting">
-          <div className="greeting-header">Welcome Back</div>
-          <div className="greeting-user">
-            {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'MJ Gamer'}
-          </div>
-          <div className="greeting-status">
-            <span className="status-dot"></span>
-            System Active
-          </div>
-        </div>
       </aside>
 
-      {/* OVERLAY FOR MOBILE */}
-      {sidebarOpen && isMobile && (
-        <div className="sidebar-overlay show" onClick={toggleSidebar}></div>
+      {isMobile && sidebarOpen && (
+        <div className="sidebar-overlay show" onClick={() => setSidebarOpen(false)}></div>
       )}
 
-      {/* MAIN CONTENT */}
-      <main className={`dashboard-main ${sidebarOpen && !isMobile ? "sidebar-open" : ""}`}>
+      <main className="dashboard-main">
         <header className="dashboard-header">
-          <button className="menu-btn" onClick={toggleSidebar}>
-            <FaBars />
-          </button>
-
+          <button className="menu-btn" onClick={toggleSidebar}><FaBars /></button>
           <h1>AquaSense Dashboard</h1>
-
           <div className="header-right">
-            <button className="icon-btn">
-              <FaBell />
-            </button>
-
+            <button className="icon-btn"><FaBell /></button>
             <button className="icon-btn" onClick={toggleTheme}>
               {theme === "dark" ? <FaSun /> : <FaMoon />}
             </button>
-
             <button className="logout-btn" onClick={handleLogout}>
-              <FaSignOutAlt />
-              <span>Sign out</span>
+              <FaSignOutAlt /> Sign out
             </button>
           </div>
         </header>
 
-        {/* GLASSMORPHISM DASHBOARD */}
-        <div className="glass-dashboard">
-          
-          {/* MAIN GRID LAYOUT */}
-          <div className="dashboard-grid">
-            
-            {/* TEMPERATURE CARD */}
-            <div className="sensor-card temperature-card">
-              <div className="card-header">
-                <h3>Temperature</h3>
-                <span className="live-badge">LIVE</span>
-              </div>
-              
-              <div className="card-icon-circle temp-circle">🌡️</div>
-              
-              <div className="card-value-section">
-                <div className="large-value">{temp}°C</div>
-                <div className="value-label">Current Reading</div>
-                <div className="status-indicator">
-                  {temp > 28 ? "⚠️ Hot" : temp < 18 ? "❄️ Cold" : "✓ Optimal"}
-                </div>
-              </div>
-            </div>
+        <Weather onWeatherUpdate={(weatherData) => {
+          setData(prev => ({ ...prev, ...weatherData }));
+        }} />
 
-            {/* HUMIDITY CARD */}
-            <div className="sensor-card humidity-card">
-              <div className="card-header">
-                <h3>Humidity</h3>
-                <span className="live-badge">LIVE</span>
-              </div>
-              
-              <div className="card-icon-circle humidity-circle">💧</div>
-              
-              <div className="circular-progress-container">
-                <CircularProgress value={humidity} max={100} color="cyan" />
-              </div>
-              
-              <div className="card-value-section">
-                <div className="large-value">{humidity}%</div>
-                <div className="value-label">Moisture Level</div>
-                <div className="range-text">Min: 32%  •  Max: 75%</div>
-              </div>
-            </div>
-
-            {/* SOIL MOISTURE CARD */}
-            <div className="sensor-card soil-card">
-              <div className="card-header">
-                <h3>Soil Moisture</h3>
-                <span className="live-badge">LIVE</span>
-              </div>
-              
-              <div className="card-icon-circle soil-circle">🌱</div>
-              
-              <div className="circular-progress-container">
-                <CircularProgress value={soil} max={100} color="amber" />
-              </div>
-              
-              <div className="card-value-section">
-                <div className="large-value">{soil}%</div>
-                <div className="value-label">Ground Status</div>
-                <div className="status-indicator">
-                  {soil < 35 ? "💧 Dry" : soil > 65 ? "💦 Wet" : "✓ Optimal"}
-                </div>
-              </div>
-            </div>
-
-            {/* RAIN CARD */}
-            <div className="sensor-card rain-card">
-              <div className="card-header">
-                <h3>Rain</h3>
-                <span className="live-badge">LIVE</span>
-              </div>
-              
-              <div className="card-icon-circle rain-circle">☁️</div>
-              
-              <div className="card-value-section">
-                <div className="large-value">{rain ? "YES" : "NO"}</div>
-                <div className="value-label">Precipitation</div>
-                <div className="status-indicator">
-                  {rain ? "🌧️ Raining" : "No precipitation"}
-                </div>
-              </div>
-
-              <div className="rain-status">
-                <div className="rain-stat">
-                  <div className="rain-stat-label">Chance of Rain</div>
-                  <div className="rain-stat-value">{rain ? "95%" : "5%"}</div>
-                </div>
-                <div className="rain-stat">
-                  <div className="rain-stat-label">Duration</div>
-                  <div className="rain-stat-value">{rain ? "45 min" : "0 min"}</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* FOOTER STATUS */}
-          <div className="dashboard-footer">
-            <div className="footer-item">
-              <span className="footer-label">🔥 Air:</span>
-              <span className="footer-value">Moderate</span>
-              <span className="footer-accent">30°C</span>
-            </div>
-            <div className="footer-divider"></div>
-            <div className="footer-item">
-              <span className="footer-label">🔄 Updated</span>
-              <span className="footer-value">3 mins ago</span>
-            </div>
-            <div className="footer-divider"></div>
-            <div className="footer-item">
-              <span className="footer-label">⏱️ Updated</span>
-              <span className="footer-value">3 mins ago</span>
-            </div>
-          </div>
-
+        <div className="sensor-grid">
+          <SensorCard title="Temperature" value={`${temp}°C`} />
+          <SensorCard title="Humidity" value={`${humidity}%`} />
+          <SensorCard title="Soil Moisture" value={`${soil}%`} />
+          <SensorCard title="Rain" value={rain ? "YES" : "NO"} />
         </div>
       </main>
     </div>
   );
 }
 
-/* CIRCULAR PROGRESS COMPONENT */
-function CircularProgress({ value, max, color }) {
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / max) * circumference;
-  
-  const colorMap = {
-    cyan: '#12d6c5',
-    amber: '#ffc107'
+function SensorCard({ title, value }) {
+  const getIcon = () => {
+    if (title === "Temperature") return "🌡️";
+    if (title === "Humidity") return "💧";
+    if (title === "Soil Moisture") return "🌱";
+    if (title === "Rain") return "🌧️";
+    return "📊";
   };
-  
-  const strokeColor = colorMap[color] || colorMap.cyan;
 
   return (
-    <svg className="circular-progress-svg" width="130" height="130">
-      <defs>
-        <filter id={`progress-glow-${color}`}>
-          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <circle className="progress-circle-bg" cx="65" cy="65" r={radius} />
-      <circle
-        className="progress-circle-fill"
-        cx="65"
-        cy="65"
-        r={radius}
-        stroke={strokeColor}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        filter={`url(#progress-glow-${color})`}
-      />
-    </svg>
+    <div className="sensor-card">
+      <div style={{ fontSize: "28px", marginBottom: "12px" }}>{getIcon()}</div>
+      <div className="sensor-card-header">{title}</div>
+      <div className="sensor-value">{value}</div>
+    </div>
   );
 }
