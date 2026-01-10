@@ -10,16 +10,22 @@ import {
 } from "recharts";
 import { ref, onValue } from "firebase/database";
 import { auth, database } from "./firebase";
-import { FaMoon, FaSun, FaSignOutAlt } from "react-icons/fa";
+import { FaMoon, FaSun } from "react-icons/fa";
 import "./Analytics.css";
 
 export default function Analytics({ setPage, theme, setTheme }) {
   const [data, setData] = useState([]);
 
+  /* =========================
+     THEME PERSISTENCE
+  ========================= */
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  /* =========================
+     FETCH SENSOR HISTORY
+  ========================= */
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(user => {
       if (!user) return;
@@ -46,19 +52,31 @@ export default function Analytics({ setPage, theme, setTheme }) {
   }, []);
 
   return (
-    <div className={`analytics-layout ${theme}`}>
+    <div className={`analytics-page ${theme === "dark" ? "dark" : ""}`}>
+      {/* HEADER */}
       <div className="analytics-header">
         <h1>Real-Time Analytics</h1>
-        <div className="header-right">
-          <button className="icon-btn" onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}>
+
+        <div className="header-actions">
+          {/* THEME TOGGLE */}
+          <button
+            className="icon-btn"
+            onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}
+          >
             {theme === "dark" ? <FaSun /> : <FaMoon />}
           </button>
-          <button className="back-btn" onClick={() => setPage("dashboard")}>
-            ← Back to Dashboard
+
+          {/* BACK BUTTON (SAME AS SETTINGS) */}
+          <button
+            className="back-btn-bootstrap"
+            onClick={() => setPage("dashboard")}
+          >
+            ← Back
           </button>
         </div>
       </div>
 
+      {/* CHARTS */}
       <div className="analytics-charts">
         <Chart title="Temperature (°C)" dataKey="temp" color="#ff6b6b" data={data} />
         <Chart title="Humidity (%)" dataKey="humidity" color="#0bbcd6" data={data} />
@@ -68,6 +86,9 @@ export default function Analytics({ setPage, theme, setTheme }) {
   );
 }
 
+/* =========================
+   CHART COMPONENT
+========================= */
 function Chart({ title, dataKey, color, data }) {
   return (
     <div className="chart-card">
@@ -78,9 +99,16 @@ function Chart({ title, dataKey, color, data }) {
           <XAxis dataKey="time" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={3} />
+          <Line
+            type="monotone"
+            dataKey={dataKey}
+            stroke={color}
+            strokeWidth={3}
+            dot={{ r: 3 }}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
+  
