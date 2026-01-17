@@ -5,16 +5,16 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail
 } from "firebase/auth";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaMoon, FaSun } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import "./Login.css";
 
 export default function Login({ setUser, setPage }) {
+  const theme = "dark";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
 
   const handleGoogleLogin = async () => {
     try {
@@ -87,12 +87,6 @@ export default function Login({ setUser, setPage }) {
     }
   };
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleEmailLogin(e);
@@ -101,10 +95,6 @@ export default function Login({ setUser, setPage }) {
 
   return (
     <div className={`auth-page ${theme}`}>
-      <div className="theme-toggle" onClick={toggleTheme}>
-        {theme === "dark" ? <FaSun /> : <FaMoon />}
-      </div>
-
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">

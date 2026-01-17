@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./Dashboard.css";
 import {
-  FaMoon,
-  FaSun,
   FaSignOutAlt,
   FaBars,
   FaBell,
@@ -18,7 +16,8 @@ import Weather from "./Weather";
 const WEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 const CITY = process.env.REACT_APP_WEATHER_CITY || process.env.REACT_APP_CITY || "Mumbai";
 
-export default function Dashboard({ setUser, setPage, theme, setTheme }) {
+export default function Dashboard({ setUser, setPage }) {
+  const theme = "dark";
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [data, setData] = useState({
@@ -72,10 +71,6 @@ export default function Dashboard({ setUser, setPage, theme, setTheme }) {
      UI CONTROLS
   ========================= */
   useEffect(() => {
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
     const onResize = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
@@ -87,7 +82,6 @@ export default function Dashboard({ setUser, setPage, theme, setTheme }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const toggleTheme = () => setTheme(t => (t === "dark" ? "light" : "dark"));
   const toggleSidebar = () => {
     if (isMobile) {
       setSidebarOpen(s => !s);
@@ -143,9 +137,6 @@ export default function Dashboard({ setUser, setPage, theme, setTheme }) {
           <h1>AquaSense Dashboard</h1>
           <div className="header-right">
             <button className="icon-btn"><FaBell /></button>
-            <button className="icon-btn" onClick={toggleTheme}>
-              {theme === "dark" ? <FaSun /> : <FaMoon />}
-            </button>
             <button className="logout-btn" onClick={handleLogout}>
               <FaSignOutAlt /> Sign out
             </button>

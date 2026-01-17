@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { FaSave, FaToggleOn, FaToggleOff, FaClock, FaThermometerHalf, FaTint, FaSeedling, FaBell, FaWifi, FaTrash, FaPlus, FaMoon, FaSun, FaSignOutAlt } from "react-icons/fa";
+import React, { useState } from "react";
+import { FaSave, FaToggleOn, FaToggleOff, FaClock, FaThermometerHalf, FaTint, FaSeedling, FaBell, FaWifi, FaTrash, FaPlus, FaSignOutAlt } from "react-icons/fa";
 import { Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Settings.css";
 
-export default function Settings({ setPage, setUser, theme, setTheme }) {
+export default function Settings({ setPage, setUser }) {
+  const theme = "dark";
   const [mode, setMode] = useState("auto");
   const [pumpStatus, setPumpStatus] = useState(false);
   const [thresholds, setThresholds] = useState({
@@ -85,12 +86,9 @@ export default function Settings({ setPage, setUser, theme, setTheme }) {
   };
 
 
-  /* =========================
-     THEME MANAGEMENT
-  ========================= */
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  /* ========================= */
+  /* THEME MANAGEMENT (DISABLED) */
+  /* ========================= */
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to sign out?")) {
@@ -105,12 +103,6 @@ export default function Settings({ setPage, setUser, theme, setTheme }) {
       <div className="settings-header">
         <h1>System Settings</h1>
         <div className="header-actions">
-          <Button 
-            className="icon-btn" 
-            onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}
-          >
-            {theme === "dark" ? <FaSun /> : <FaMoon />}
-          </Button>
           <Button 
             className="save-btn-bootstrap"
             onClick={handleSave}

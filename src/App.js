@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import Landing from "./Landing";
 import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
@@ -10,14 +11,14 @@ import "./App.css";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [page, setPage] = useState("login");
+  const [page, setPage] = useState("landing"); // Always start with landing page
   const [sensor, setSensor] = useState(null);
   const [loading, setLoading] = useState(true);
 
   /* ✅ GLOBAL THEME STATE */
   const [theme, setTheme] = useState(
-  localStorage.getItem("theme") || "light"
-);
+    localStorage.getItem("theme") || "dark"
+  );
 
   const fetchSensorData = useCallback(async () => {
     const urls = [
@@ -44,11 +45,12 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
+        // User is logged in - redirect to dashboard
         setUser(currentUser);
         setPage("dashboard");
       } else {
+        // User is not logged in - keep on landing page
         setUser(null);
-        setPage("login");
       }
       setLoading(false);
     });
@@ -57,11 +59,13 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div className="app-loading">Loading AquaSense...</div>;
+    // Show landing page while loading auth state instead of loading screen
+    return <Landing setPage={setPage} />;
   }
 
   return (
     <div className={`App ${theme}`}>
+      {page === "landing" && <Landing setPage={setPage} />}
       {page === "login" && <Login setUser={setUser} setPage={setPage} />}
       {page === "register" && <Register setUser={setUser} setPage={setPage} />}
 
@@ -71,8 +75,6 @@ function App() {
           user={user}
           setUser={setUser}
           setPage={setPage}
-          theme={theme}
-          setTheme={setTheme}
         />
       )}
 
@@ -82,8 +84,6 @@ function App() {
           user={user}
           setUser={setUser}
           setPage={setPage}
-          theme={theme}
-          setTheme={setTheme}
         />
       )}
 
@@ -93,8 +93,6 @@ function App() {
           user={user}
           setUser={setUser}
           setPage={setPage}
-          theme={theme}
-          setTheme={setTheme}
         />
       )}
     </div>

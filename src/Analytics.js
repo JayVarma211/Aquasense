@@ -10,18 +10,11 @@ import {
 } from "recharts";
 import { ref, onValue } from "firebase/database";
 import { auth, database } from "./firebase";
-import { FaMoon, FaSun } from "react-icons/fa";
 import "./Analytics.css";
 
-export default function Analytics({ setPage, theme, setTheme }) {
+export default function Analytics({ setPage }) {
+  const theme = "dark";
   const [data, setData] = useState([]);
-
-  /* =========================
-     THEME PERSISTENCE
-  ========================= */
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-  }, [theme]);
 
   /* =========================
      FETCH SENSOR HISTORY
@@ -52,20 +45,12 @@ export default function Analytics({ setPage, theme, setTheme }) {
   }, []);
 
   return (
-    <div className={`analytics-page ${theme === "dark" ? "dark" : ""}`}>
+    <div className="analytics-page dark">
       {/* HEADER */}
       <div className="analytics-header">
         <h1>Real-Time Analytics</h1>
 
         <div className="header-actions">
-          {/* THEME TOGGLE */}
-          <button
-            className="icon-btn"
-            onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}
-          >
-            {theme === "dark" ? <FaSun /> : <FaMoon />}
-          </button>
-
           {/* BACK BUTTON (SAME AS SETTINGS) */}
           <button
             className="back-btn-bootstrap"

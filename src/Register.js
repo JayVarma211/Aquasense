@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
 import { auth, provider } from "./firebase";
 import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { FaEnvelope, FaPhone, FaLock, FaEye, FaEyeSlash, FaGoogle, FaMoon, FaSun, FaCheck, FaArrowLeft, FaUser } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaLock, FaEye, FaEyeSlash, FaGoogle, FaCheck, FaArrowLeft, FaUser } from "react-icons/fa";
 import "./Login.css";
 
 export default function Register({ setUser, setPage }) {
+  const theme = "dark";
   const [signupMethod, setSignupMethod] = useState(null);
   const [step, setStep] = useState(1);
   
@@ -22,14 +23,7 @@ export default function Register({ setUser, setPage }) {
   
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const confirmationResult = useRef(null);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
 
   const handleEmailSignup = async () => {
     setError("");
@@ -175,10 +169,6 @@ export default function Register({ setUser, setPage }) {
 
   return (
     <div className={`auth-page ${theme}`}>
-      <div className="theme-toggle" onClick={toggleTheme}>
-        {theme === "dark" ? <FaSun /> : <FaMoon />}
-      </div>
-
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">

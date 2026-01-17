@@ -1,6 +1,6 @@
 /* =========================================================
-   🌾 AQUASENSE - LIGHT CLEAN FARMING THEME
-   Production Ready | Clean & Bright | Agricultural IoT
+   🌾 AQUASENSE - DARK MODE THEME (DEFAULT)
+   Production Ready | Dark & Modern | Agricultural IoT
 ========================================================= */
 
 /* =========================================================
@@ -8,7 +8,39 @@
 ========================================================= */
 
 :root {
-  /* 🌞 LIGHT MODE (DEFAULT) */
+  /* 🌙 DARK MODE (DEFAULT) */
+  --bg-primary: #1a2b23;
+  --bg-secondary: #1f3229;
+  --bg-tertiary: #24382e;
+  
+  --glass-light: rgba(255, 255, 255, 0.08);
+  --glass-medium: rgba(255, 255, 255, 0.12);
+  --glass-strong: rgba(255, 255, 255, 0.15);
+  
+  --text-primary: #e8f2ed;
+  --text-secondary: #b8d4c8;
+  --text-tertiary: #8aaa9e;
+  
+  --accent-green: #4db878;
+  --accent-light-green: #5cd88a;
+  --accent-aqua: #00d4d4;
+  --accent-blue: #5ec9ff;
+  --accent-earth: #d4b896;
+  
+  --border-color: rgba(77, 184, 120, 0.2);
+  --border-light: rgba(77, 184, 120, 0.15);
+  
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.5);
+  
+  --transition-smooth: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.3s ease;
+  --transition-slow: 0.6s ease-in-out;
+}
+
+/* 🌞 LIGHT MODE (DEPRECATED - NO LONGER USED) */
+.theme-light {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fdf6;
   --bg-tertiary: #f0faf6;
@@ -38,36 +70,6 @@
   --transition-fast: 0.3s ease;
   --transition-slow: 0.6s ease-in-out;
 }
-
-/* 🌙 DARK MODE */
-.theme-dark {
-  --bg-primary: #1a2b23;
-  --bg-secondary: #1f3229;
-  --bg-tertiary: #24382e;
-  
-  --glass-light: rgba(255, 255, 255, 0.08);
-  --glass-medium: rgba(255, 255, 255, 0.12);
-  --glass-strong: rgba(255, 255, 255, 0.15);
-  
-  --text-primary: #e8f2ed;
-  --text-secondary: #b8d4c8;
-  --text-tertiary: #8aaa9e;
-  
-  --accent-green: #4db878;
-  --accent-light-green: #5cd88a;
-  --accent-aqua: #00d4d4;
-  --accent-blue: #5ec9ff;
-  --accent-earth: #d4b896;
-  
-  --border-color: rgba(77, 184, 120, 0.2);
-  --border-light: rgba(77, 184, 120, 0.15);
-  
-  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.5);
-  
-  --transition-smooth: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-fast: 0.3s ease;
   --transition-slow: 0.6s ease-in-out;
 }
 
